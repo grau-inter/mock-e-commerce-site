@@ -18,6 +18,14 @@ public interface ICartService
     CartItem Add(CartItem item);
 
     /// <summary>
+    /// Sets the quantity of an existing cart item.
+    /// </summary>
+    /// <param name="productId">The product ID to update.</param>
+    /// <param name="quantity">The new absolute quantity.</param>
+    /// <returns>The updated cart item, or <c>null</c> if not found.</returns>
+    CartItem? UpdateQuantity(int productId, int quantity);
+
+    /// <summary>
     /// Finds an existing cart item by product ID.
     /// </summary>
     /// <param name="productId">The product ID to look up.</param>

@@ -15,30 +15,92 @@ public class InMemoryCartService : ICartService
     /// <inheritdoc />
     public IEnumerable<CartItem> GetAll()
     {
-        throw new NotImplementedException();
+        lock (_lock)
+        {
+            return _cart.Select(CloneItem).ToList();
+        }
     }
 
     /// <inheritdoc />
     public CartItem? GetByProductId(int productId)
     {
-        throw new NotImplementedException();
+        lock (_lock)
+        {
+            var existingItem = _cart.FirstOrDefault(item => item.ProductId == productId);
+            return existingItem is null ? null : CloneItem(existingItem);
+        }
     }
 
     /// <inheritdoc />
     public CartItem Add(CartItem item)
     {
-        throw new NotImplementedException();
+        lock (_lock)
+        {
+            var existingItem = _cart.FirstOrDefault(cartItem => cartItem.ProductId == item.ProductId);
+            if (existingItem is null)
+            {
+                var newItem = CloneItem(item);
+                _cart.Add(newItem);
+                return CloneItem(newItem);
+            }
+
+            existingItem.Quantity += item.Quantity;
+            existingItem.ProductName = item.ProductName;
+            existingItem.UnitPrice = item.UnitPrice;
+
+            return CloneItem(existingItem);
+        }
+    }
+
+    /// <inheritdoc />
+    public CartItem? UpdateQuantity(int productId, int quantity)
+    {
+        lock (_lock)
+        {
+            var existingItem = _cart.FirstOrDefault(item => item.ProductId == productId);
+            if (existingItem is null)
+            {
+                return null;
+            }
+
+            existingItem.Quantity = quantity;
+            return CloneItem(existingItem);
+        }
     }
 
     /// <inheritdoc />
     public bool Remove(int productId)
     {
-        throw new NotImplementedException();
+        lock (_lock)
+        {
+            var existingItem = _cart.FirstOrDefault(item => item.ProductId == productId);
+            if (existingItem is null)
+            {
+                return false;
+            }
+
+            _cart.Remove(existingItem);
+            return true;
+        }
     }
 
     /// <inheritdoc />
     public void Clear()
     {
-        throw new NotImplementedException();
+        lock (_lock)
+        {
+            _cart.Clear();
+        }
+    }
+
+    private static CartItem CloneItem(CartItem item)
+    {
+        return new CartItem
+        {
+            ProductId = item.ProductId,
+            ProductName = item.ProductName,
+            UnitPrice = item.UnitPrice,
+            Quantity = item.Quantity,
+        };
     }
 }
